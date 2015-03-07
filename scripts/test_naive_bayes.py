@@ -16,6 +16,10 @@ import pylab
 import nltk
 import math
 
+import re
+
+# global variables
+
 
 
 def tokenize_data(data_set):
@@ -25,6 +29,7 @@ def tokenize_data(data_set):
         
         for w in s:
             res.append(w)
+
     return res
 
 def get_most_frequent_words(words, k):
@@ -64,31 +69,32 @@ chkr = SpellChecker("en_US")
 def most_frequent_spam_features(message):
     #features = OrderedDict()
     features = {}
-    #spam_words = ['a','e','i','o','u', 'sex', 'promotion']
-    black_list = ['call', 'free', 'stop', 'get', 'claim', 'repli', 'text', 'go', 'txt', 'know', 'want', 'come', 'lt', 'msg', 'like', 'mobil', 'send', 'time', 'pleas', 'got', 'new', 'day', 'good', 'number', 'ok', 'love', 'contact', 'phone', 'messag', 'today', 'pound', 'prize', 'need', 'servic', 'accid', 'back', 'may', 'one', 'tri', 'think', 'see', 'entitl', 'record', 'hi', 'ye', 'urgent', 'sex', 'promotion']
-    message_words = message.split(' ')
-
-    features['contain_number'] = 'yes' if r'[0-9]+' in message.lower() else 'no'
-    features['black_list_words'] = len([w for w in message_words if w.lower() in black_list])    
-    features['total_number_chars'] = round(len(message)/5.0)*5.0
+   
+    message_words = tokenize_text(message)
+    
+    features['contain_number'] = 'yes' if re.search(r'[\d+]', message.lower()) else 'no'
+    features['total_number_chars'] = len(message) #round(len(message)/5.0)*5.0
     
     misspelled = 0
     chkr.set_text(message)
     for err in chkr:
         misspelled += 1
-        
-    features['misspelled_ratio'] = misspelled/len(message_words)
     
-    '''
-    # get all required features
-    i = 1
-    for w in spam:
-        if i == 6:
-            break
-        if len(w) > 3:
-            features['most_frequent_'+str(i)] = w
-        i += 1
-    '''
+    if (len(message_words) == 0):
+        features['misspelled_ratio'] = 0
+    else:
+        features['misspelled_ratio'] = misspelled/len(message_words)
+    
+    features['num_ham_words'] = len([w for w in most_freq_ham if w.lower() in message_words])  
+    features['num_spam_words'] = len([w for w in most_freq_spam if w.lower() in message_words])  
+
+
+    total = 0
+    raw_msg_words = re.split('[\W+]', message)
+    raw_msg_words = [w for w in raw_msg_words if w != '']
+    for w in raw_msg_words:
+        total += len(w)
+    features['avg_char_length_of_word'] = total / len(raw_msg_words) if len(raw_msg_words) != 0 else 0
     
     # no need to return in input order
     return features
@@ -161,7 +167,6 @@ def cross_validate_naive_Bayes(data, v, r):
     # using predefined function to get all features
     featuresets = [(most_frequent_spam_features(m), l) for (m, l) in labeled_messages]
     
-    
     #---------------------------------------------------
     #   no need to touch the below parts
     #---------------------------------------------------
@@ -175,11 +180,11 @@ def cross_validate_naive_Bayes(data, v, r):
         train_set = featuresets[0:i*m] + featuresets[(i+1)*m:]
         classifier = nltk.NaiveBayesClassifier.train(train_set)
         accuracy_list[i] = 100 * nltk.classify.accuracy(classifier, test_set)
+ 
+    return sum(accuracy_list)/len(accuracy_list)
+    
+    
 
-    return accuracy_list
-    
-    
-    
 def main():
     print('Loading processed data...')
     ham = open('./datasets/cleanup/ham_cleanup.txt', 'r', encoding='utf-8')
@@ -210,6 +215,9 @@ def main():
     input('Hit Enter to continue...')
     
     
+    global most_freq_ham
+    global most_freq_spam    
+    
     most_freq_ham = get_most_frequent_words(ham_word_list, 50)    
     print( '\n\n\nTop 50 frequently show up words in ham set >\n',  most_freq_ham)
     input('Hit Enter to continue...')
@@ -228,9 +236,14 @@ def main():
         data[m] = 'ham'
     for m in spam_raw:
         data[m] = 'spam'
-    
-    print(len(data))
-    print('naive bayes accuracy >\n', test_naive_bayes(data, 500, 10, 1000) )
+
+    print('data len: ', len(data))
+    count = 0
+    for m in data:
+        if (data[m] == 'spam'):
+            count += 1
+    print("spam len: ", count)
+    print('naive bayes accuracy >\n', test_naive_bayes(data, 500, 30, 1000) )
     print('cross validation rates >\n', cross_validate_naive_Bayes(data, 4, 1000) )
 
     '''

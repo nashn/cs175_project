@@ -32,19 +32,17 @@ def tokenize_text(line):
     # remove stopwords
     #print(stopwords)
     filtered_words_of_tokenized_line = [w for w in words_of_tokenized_line if w not in stop]
-
     # stemming
-    # filtered_words_of_tokenized_line = [stemmer.stem(w) for w in filtered_words_of_tokenized_line]    
+    filtered_words_of_tokenized_line = [stemmer.stem(w) for w in filtered_words_of_tokenized_line]    
     
     # lemmatization
-    filtered_words_of_tokenized_line = [lemmatizer.lemmatize(w) for w in filtered_words_of_tokenized_line];
-    
+    #filtered_words_of_tokenized_line = [lemmatizer.lemmatize(w) for w in filtered_words_of_tokenized_line];
     return filtered_words_of_tokenized_line
     
 def most_frequent(words, K):
-    # countting frequencies
+    # counting frequencies
     for w in words:
-        if w not in frequencies:
+        if w not in frequencies.keys():
             frequencies[w] = 1
         else:
             frequencies[w] += 1
