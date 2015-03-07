@@ -24,7 +24,8 @@ def tokenize_text(line):
     
     stop = stopwords.words('english')
     stemmer = PorterStemmer()
-
+    lemmatizer = WordNetLemmatizer()
+    
     # get all word tokens from the tokenized line
     words_of_tokenized_line = [w.lower() for w in tokenized_line if w.isalpha()]
     
@@ -33,7 +34,10 @@ def tokenize_text(line):
     filtered_words_of_tokenized_line = [w for w in words_of_tokenized_line if w not in stop]
 
     # stemming
-    filtered_words_of_tokenized_line = [stemmer.stem(w) for w in filtered_words_of_tokenized_line]    
+    # filtered_words_of_tokenized_line = [stemmer.stem(w) for w in filtered_words_of_tokenized_line]    
+    
+    # lemmatization
+    filtered_words_of_tokenized_line = [lemmatizer.lemmatize(w) for w in filtered_words_of_tokenized_line];
     
     return filtered_words_of_tokenized_line
     

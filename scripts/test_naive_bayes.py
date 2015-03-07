@@ -8,6 +8,7 @@ Created on Sat Feb 21 12:07:36 2015
 from tokenizer import *
 
 import random
+from enchant.checker import SpellChecker
 
 from nltk import FreqDist
 import pylab
@@ -59,17 +60,25 @@ def length_barchart(text, label):
 # modify the feature function to be our own features
 #   1. statistical based features
 #   2. human heuristics based features
+chkr = SpellChecker("en_US")
 def most_frequent_spam_features(message):
     #features = OrderedDict()
     features = {}
     #spam_words = ['a','e','i','o','u', 'sex', 'promotion']
     black_list = ['call', 'free', 'stop', 'get', 'claim', 'repli', 'text', 'go', 'txt', 'know', 'want', 'come', 'lt', 'msg', 'like', 'mobil', 'send', 'time', 'pleas', 'got', 'new', 'day', 'good', 'number', 'ok', 'love', 'contact', 'phone', 'messag', 'today', 'pound', 'prize', 'need', 'servic', 'accid', 'back', 'may', 'one', 'tri', 'think', 'see', 'entitl', 'record', 'hi', 'ye', 'urgent', 'sex', 'promotion']
-    message_words = message.split(r'[^A-Za-z]')
+    message_words = message.split(' ')
 
     features['contain_number'] = 'yes' if r'[0-9]+' in message.lower() else 'no'
     features['black_list_words'] = len([w for w in message_words if w.lower() in black_list])    
-    features['total_number_chars'] = len(message)
-
+    features['total_number_chars'] = round(len(message)/5.0)*5.0
+    
+    misspelled = 0
+    chkr.set_text(message)
+    for err in chkr:
+        misspelled += 1
+        
+    features['misspelled_ratio'] = misspelled/len(message_words)
+    
     '''
     # get all required features
     i = 1
