@@ -24,7 +24,7 @@ def tokenize_text(line):
     
     stop = stopwords.words('english')
     stemmer = PorterStemmer()
-    lemmatizer = WordNetLemmatizer()
+    #lemmatizer = WordNetLemmatizer()
     
     # get all word tokens from the tokenized line
     words_of_tokenized_line = [w.lower() for w in tokenized_line if w.isalpha()]

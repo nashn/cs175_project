@@ -237,12 +237,6 @@ def main():
     for m in spam_raw:
         data[m] = 'spam'
 
-    print('data len: ', len(data))
-    count = 0
-    for m in data:
-        if (data[m] == 'spam'):
-            count += 1
-    print("spam len: ", count)
     print('naive bayes accuracy >\n', test_naive_bayes(data, 500, 30, 1000) )
     print('cross validation rates >\n', cross_validate_naive_Bayes(data, 4, 1000) )
 
